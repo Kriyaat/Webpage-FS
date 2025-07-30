@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kriyaat - Interactive Weather and Crop Advisory Tool</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        body {
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .blinking-dot {
+            animation: blinker 1.5s linear infinite;
+        }
+        @keyframes blinker {
+            50% {
+                opacity: 0.2;
+            }
+        }
+        .warning-pulse {
+            animation: pulse 2s infinite;
+            border-color: #f59e0b;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+            }
+        }
+        [x-cloak] {
+            display: none !important;
+        }
+        .info-dot {
+            position: relative;
+        }
+        .info-dot .tooltip {
+            visibility: hidden;
+            width: 120px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .info-dot .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+        .info-dot:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+<script defer="" src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-100" x-data="{ allExpanded: true }">
+<header class="bg-white shadow-sm sticky top-0 z-30">
+<div class="container mx-auto px-6 py-4 flex justify-between items-center">
+<div class="flex items-center">
+<div class="w-10 h-10 bg-teal-500 rounded-full mr-3 flex items-center justify-center">
+<span class="material-icons text-white">grass</span>
+</div>
+<h1 class="text-2xl font-bold text-gray-800">Kriyaat</h1>
+</div>
+<nav class="hidden md:flex items-center space-x-8">
+<a class="text-gray-600 hover:text-teal-500 transition-colors" href="#">Home</a>
+<a class="text-gray-600 hover:text-teal-500 transition-colors" href="#">About Us</a>
+<a class="text-gray-600 hover:text-teal-500 transition-colors" href="#">Team</a>
+<a class="text-gray-600 hover:text-teal-500 transition-colors" href="#">Contact Us</a>
+</nav>
+<div class="flex items-center space-x-4">
+<div class="relative" x-data="{ langMenu: false }">
+<button @click="langMenu = !langMenu" class="flex items-center text-gray-600 hover:text-teal-500 transition-colors">
+<span class="material-icons">language</span>
+<span class="ml-2 hidden lg:inline">English</span>
+<span :class="{ 'rotate-180': langMenu }" class="material-icons transition-transform">expand_more</span>
+</button>
+<div @click.outside="langMenu = false" class="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg py-1 z-20 transition-all" x-cloak="" x-show="langMenu" x-transition:enter="transition ease-out duration-100" x-transition:enter-end="transform opacity-100 scale-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:leave="transition ease-in duration-75" x-transition:leave-end="transform opacity-0 scale-95" x-transition:leave-start="transform opacity-100 scale-100">
+<a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="#">English</a>
+<a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="#">Nepali</a>
+<a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="#">Hindi</a>
+</div>
+</div>
+<button class="text-gray-600 hover:text-teal-500 transition-colors">
+<span class="material-icons">visibility</span>
+</button>
+<button class="relative text-gray-600 hover:text-teal-500 transition-colors">
+<span class="material-icons">notifications</span>
+<span class="absolute top-0 right-0 h-2.5 w-2.5 bg-red-500 rounded-full animate-ping"></span>
+<span class="absolute top-0.5 right-0.5 h-1.5 w-1.5 bg-red-500 rounded-full"></span>
+</button>
+</div>
+</div>
+</header>
+<main class="container mx-auto px-6 py-12">
+<section class="text-center mb-8">
+<h2 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4 animate-fade-in-down">Your Farm's Digital Companion</h2>
+<p class="text-lg text-gray-600 max-w-3xl mx-auto">Smart decisions with humane advice, right when you need it.</p>
+</section>
+<section class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-lg mb-8 shadow-md" role="alert">
+<div class="flex items-center">
+<div class="py-1"><span class="material-icons mr-3 text-yellow-600 animate-pulse">warning</span></div>
+<div>
+<p class="font-bold">Government Warning: Flash Flood Alert</p>
+<p class="text-sm">Heavy rainfall is expected in the next 24 hours. Farmers in low-lying areas are advised to take necessary precautions. <a class="font-semibold underline hover:text-yellow-800" href="#">Learn more</a></p>
+</div>
+</div>
+</section>
+<div class="flex justify-end mb-6">
+<button @click="allExpanded = !allExpanded" class="bg-white text-gray-600 hover:bg-gray-200 transition-colors py-2 px-4 rounded-lg shadow-sm flex items-center">
+<span class="material-icons mr-2 text-sm" x-text="allExpanded ? 'unfold_less' : 'unfold_more'"></span>
+<span x-text="allExpanded ? 'Collapse All' : 'Expand All'"></span>
+</button>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8" x-data="{ advisoryExpanded: true, weatherExpanded: true, locationExpanded: true }">
+<div class="lg:col-span-2 space-y-8">
+<div class="bg-white p-6 rounded-2xl shadow-lg" x-data="{ expanded: weatherExpanded }" x-init="$watch('allExpanded', value =&gt; expanded = value)">
+<div @click="expanded = !expanded" class="flex justify-between items-center cursor-pointer">
+<h3 class="text-xl font-semibold text-gray-800 flex items-center">
+<span class="material-icons text-teal-500 mr-3">thermostat</span> Current &amp; Upcoming Weather
+                        </h3>
+<button :class="{'rotate-180': !expanded}" class="text-gray-500 hover:text-gray-700 transition-transform">
+<span class="material-icons">expand_less</span>
+</button>
+</div>
+<div class="mt-6" x-collapse="" x-show="expanded">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+<div class="bg-blue-50 p-4 rounded-xl flex items-start justify-between relative transition-transform hover:scale-105">
+<div>
+<p class="text-sm text-blue-600 mb-1">Temperature</p>
+<p class="text-3xl font-bold text-blue-900">28°C</p>
+</div>
+<div class="info-dot">
+<div class="w-3 h-3 bg-green-500 rounded-full blinking-dot"></div>
+<span class="tooltip">Normal</span>
+</div>
+<span class="material-icons text-blue-300 absolute bottom-2 right-2 text-4xl">thermostat</span>
+</div>
+<div class="bg-cyan-50 p-4 rounded-xl flex items-start justify-between relative transition-transform hover:scale-105">
+<div>
+<p class="text-sm text-cyan-600 mb-1">Humidity</p>
+<p class="text-3xl font-bold text-cyan-900">85%</p>
+</div>
+<div class="info-dot">
+<div class="w-3 h-3 bg-red-500 rounded-full blinking-dot"></div>
+<span class="tooltip">High</span>
+</div>
+<span class="material-icons text-cyan-300 absolute bottom-2 right-2 text-4xl">water_drop</span>
+</div>
+<div class="bg-gray-200 p-4 rounded-xl flex items-start justify-between relative transition-transform hover:scale-105">
+<div>
+<p class="text-sm text-gray-600 mb-1">Wind Speed</p>
+<p class="text-3xl font-bold text-gray-900">10 km/h</p>
+</div>
+<div class="info-dot">
+<div class="w-3 h-3 bg-green-500 rounded-full blinking-dot"></div>
+<span class="tooltip">Normal</span>
+</div>
+<span class="material-icons text-gray-400 absolute bottom-2 right-2 text-4xl">air</span>
+</div>
+<div class="bg-yellow-100 p-4 rounded-xl flex items-start justify-between relative transition-transform hover:scale-105">
+<div>
+<p class="text-sm text-yellow-700 mb-1">UV Index</p>
+<p class="text-3xl font-bold text-yellow-900">High</p>
+</div>
+<div class="info-dot">
+<div class="w-3 h-3 bg-yellow-500 rounded-full blinking-dot"></div>
+<span class="tooltip">Moderate</span>
+</div>
+<span class="material-icons text-yellow-300 absolute bottom-2 right-2 text-4xl">wb_sunny</span>
+</div>
+</div>
+<div>
+<h4 class="text-lg font-semibold text-gray-700 mb-4 flex items-center"><span class="material-icons mr-2 text-blue-500">water_drop</span>Rain Prediction</h4>
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-center">
+<div class="bg-blue-100/60 p-4 rounded-lg shadow-inner">
+<p class="text-sm font-medium text-blue-700">Now</p>
+<span class="material-icons text-4xl text-blue-300 my-1">grain</span>
+<p class="text-sm font-bold text-blue-900">10%</p>
+<p class="text-xs text-blue-800">Light</p>
+</div>
+<div class="bg-blue-100/60 p-4 rounded-lg shadow-inner">
+<p class="text-sm font-medium text-blue-700">3 PM</p>
+<span class="material-icons text-4xl text-blue-400 my-1">filter_drama</span>
+<p class="text-sm font-bold text-blue-900">25%</p>
+<p class="text-xs text-blue-800">Good</p>
+</div>
+<div class="bg-blue-100/60 p-4 rounded-lg shadow-inner">
+<p class="text-sm font-medium text-blue-700">6 PM</p>
+<span class="material-icons text-4xl text-blue-500 my-1">thunderstorm</span>
+<p class="text-sm font-bold text-blue-900">80%</p>
+<p class="text-xs text-blue-800">High</p>
+</div>
+<div class="bg-blue-100/60 p-4 rounded-lg shadow-inner">
+<p class="text-sm font-medium text-blue-700">9 PM</p>
+<span class="material-icons text-4xl text-blue-300 my-1">grain</span>
+<p class="text-sm font-bold text-blue-900">15%</p>
+<p class="text-xs text-blue-800">Light</p>
+</div>
+<div class="bg-blue-100/60 p-4 rounded-lg shadow-inner">
+<p class="text-sm font-medium text-blue-700">12 AM</p>
+<span class="material-icons text-4xl text-gray-400 my-1">cloud_off</span>
+<p class="text-sm font-bold text-blue-900">5%</p>
+<p class="text-xs text-blue-800">Very Low</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="space-y-8">
+<div class="bg-white p-6 rounded-2xl shadow-lg" x-data="{ expanded: locationExpanded }" x-init="$watch('allExpanded', value =&gt; expanded = value)">
+<div @click="expanded = !expanded" class="flex justify-between items-center cursor-pointer">
+<h3 class="text-xl font-semibold text-gray-800 flex items-center">
+<span class="material-icons text-teal-500 mr-3">location_on</span> Your Location
+                        </h3>
+<button :class="{'rotate-180': !expanded}" class="text-gray-500 hover:text-gray-700 transition-transform">
+<span class="material-icons">expand_less</span>
+</button>
+</div>
+<div class="mt-6" x-collapse="" x-show="expanded">
+<div class="relative mb-4">
+<input class="w-full pl-10 pr-4 py-3 bg-gray-100 border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-shadow" placeholder="Search for your location..." type="text"/>
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-icons text-gray-500">search</span>
+</div>
+</div>
+<div class="bg-gray-200 rounded-xl h-64 md:h-80 lg:h-96 flex items-center justify-center relative overflow-hidden">
+<img alt="Stylized map graphic showing a selected farm location" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxNivghXGA0oYKYjTZgdnBFbp_OrTr1krOMA4u38O1XCFwvq95c3yTM54KrRsda7Y7kUUxREFE7xoHLsFvEIBE64gqpCTpKViNyRAWSZwu5Ayn-VazlmcKcvNiIJ6lRhNM0xWwQjRSDDzT6c4MqwghBxztEFKVuBoIjUVTqMApdGY9SPEFClwwEYVl31ODfCcv2qPzZddogmZQ-hlcnT--yv9Wvkg38U3LyMwN2UhjT1ouJB3XLxlOqfMYHij4jm4smE0fe5vMwJXD"/>
+<div class="absolute">
+<span class="material-icons text-red-500 text-5xl animate-bounce">place</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-3">
+<div class="bg-white p-6 rounded-2xl shadow-lg">
+<h4 class="text-lg font-semibold text-gray-700 mb-4 flex items-center"><span class="material-icons mr-2 text-indigo-500">schedule</span>Weather Throughout the Day</h4>
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-center">
+<div class="bg-indigo-50 p-4 rounded-lg">
+<p class="text-sm font-medium text-indigo-600">Now</p>
+<span class="material-icons text-3xl text-yellow-500 my-1">wb_sunny</span>
+<p class="text-xl font-bold text-indigo-900">28°C</p>
+</div>
+<div class="bg-indigo-50 p-4 rounded-lg">
+<p class="text-sm font-medium text-indigo-600">3 PM</p>
+<span class="material-icons text-3xl text-blue-400 my-1">cloud</span>
+<p class="text-xl font-bold text-indigo-900">27°C</p>
+</div>
+<div class="bg-indigo-50 p-4 rounded-lg">
+<p class="text-sm font-medium text-indigo-600">6 PM</p>
+<span class="material-icons text-3xl text-gray-500 my-1">water_drop</span>
+<p class="text-xl font-bold text-indigo-900">25°C</p>
+</div>
+<div class="bg-indigo-50 p-4 rounded-lg">
+<p class="text-sm font-medium text-indigo-600">9 PM</p>
+<span class="material-icons text-3xl text-gray-600 my-1">nights_stay</span>
+<p class="text-xl font-bold text-indigo-900">22°C</p>
+</div>
+<div class="bg-indigo-50 p-4 rounded-lg">
+<p class="text-sm font-medium text-indigo-600">12 AM</p>
+<span class="material-icons text-3xl text-gray-700 my-1">bedtime</span>
+<p class="text-xl font-bold text-indigo-900">20°C</p>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-3">
+<section class="mt-8">
+<div class="bg-white p-8 rounded-2xl shadow-lg" x-data="{ expanded: advisoryExpanded, advisoryTab: 'irrigation' }" x-init="$watch('allExpanded', value =&gt; expanded = value)">
+<div @click="expanded = !expanded" class="flex justify-between items-center cursor-pointer">
+<h3 class="text-2xl font-semibold text-gray-800 flex items-center">
+<span class="material-icons text-teal-500 mr-3">eco</span> Crop Advisory
+                            </h3>
+<button :class="{'rotate-180': !expanded}" class="text-gray-500 hover:text-gray-700 transition-transform">
+<span class="material-icons">expand_less</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start mt-6" x-collapse="" x-show="expanded">
+<div x-data="{ open: false, selected: 'wheat', cropName: 'Wheat' }">
+<h4 class="text-lg font-medium text-gray-700 mb-4">Select Your Crop</h4>
+<div class="relative mb-6">
+<button @click="open = !open" class="w-full bg-gray-100 text-left py-3 px-4 rounded-lg flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-teal-500">
+<span class="flex items-center">
+<img :src="`https://lh3.googleusercontent.com/aida-public/AB6AXuBWMj1u1IGqWKofsv6Vk2Vtkss399jEsLBkYksN0xGgR2Nw3CBK7ZyeuKIKRre3U0rPxxMoJAxN9dc-o2UrdQl0gc-z3YtdMAyTqtPV7Y6bmPsqFKO8jUxDYWR71_ikngqw_VYKsKpMHC_1D81TJ1w88qmUVUNanevJfxxvkvG9ZE9WGD3N1RmMTJXqaPnbIpoMxUyiVgGoQ8MZvE2idATrRhiQAB3bVsiwPMAFfYlpBbE9KQE4ZrmJyYg-Ptx7Pp1-_k2PfQd01Adr`.replace('wheat', selected)" alt="" class="w-8 h-8 mr-3 rounded-full object-cover"/>
+<span x-text="cropName"></span>
+</span>
+<span :class="{'rotate-180': open}" class="material-icons transition-transform">expand_more</span>
+</button>
+<div @click.outside="open = false" class="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-xl py-1" x-cloak="" x-show="open">
+<a @click.prevent="selected = 'wheat'; cropName = 'Wheat'; open = false" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100" href="#">
+<img alt="Wheat icon" class="w-8 h-8 mr-3 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWMj1u1IGqWKofsv6Vk2Vtkss399jEsLBkYksN0xGgR2Nw3CBK7ZyeuKIKRre3U0rPxxMoJAxN9dc-o2UrdQl0gc-z3YtdMAyTqtPV7Y6bmPsqFKO8jUxDYWR71_ikngqw_VYKsKpMHC_1D81TJ1w88qmUVUNanevJfxxvkvG9ZE9WGD3N1RmMTJXqaPnbIpoMxUyiVgGoQ8MZvE2idATrRhiQAB3bVsiwPMAFfYlpBbE9KQE4ZrmJyYg-Ptx7Pp1-_k2PfQd01Adr"/> Wheat
+                                        </a>
+<a @click.prevent="selected = 'corn'; cropName = 'Corn'; open = false" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100" href="#">
+<img alt="Corn icon" class="w-8 h-8 mr-3 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuub1izGdj9aXhzZfUsUdJkyw5BBhBs5LQYUx-DoL80Cc8OhlSBbUFwDNWC7b0vsb3QEOJfUjOq-4Y5ustFF38fhzx3vUAC8BanE64A_gMwUxOlcPBDEVeUckD8f_NvPioAHrCA0RiwZMfxvPkddORAXCPV_ZBmSZdxkwp1JhAlBYcVpy2Sn4OVaksR4i3cYx7mG3TnLeRP8F-ZuRNVwMqknn6fqi1BZI2u5EYnt55yNU7j_5Pbie_-XHagoHrmlF4jLqWf4OXB8sk"/> Corn
+                                        </a>
+<a @click.prevent="selected = 'rice'; cropName = 'Rice'; open = false" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100" href="#">
+<img alt="Rice icon" class="w-8 h-8 mr-3 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKYu_cJPF7viaifyjTdauXgE1l9LbFcIV4PKI1BAgdfjnfO0Qs3eS6wZvV8WvNUX7MCew9Q6A480_jeaMQr1AmEvZMRajIeJjiB929CBy2qPHpB8UPmyJNGqFvvxKC4UYwvwRnDM0tiSQ3-XqDRt34exk9X3xaB8nJM5cWhOmqx_Iah7osMJPLiVmKB2o4F-9s1cHFQrcMwJkQcRNuJnOzJYEYypp3fVzz3YY3HgjmJOT2rO9SX8K3U86DQXXpjHwwSCCWZMpoLyeU"/> Rice
+                                        </a>
+</div>
+</div>
+<p class="text-gray-500 text-sm mb-6">Select your crop to see tailored advice based on the current weather conditions. Reports update automatically.</p>
+<img alt="A lush green wheat field under a blue sky" class="rounded-xl object-cover h-48 w-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_5vWMHaq7hdHb41mJN4DEL7pxGhIcLhxChqj--nEy7V_tGLFJlmxVsHV46jsy1kcEzh8zBFTuXBH7hFqZuGPmL5MwimaReiKw2defPH1qIeudUPntpe_Ne_Uz7pebluE5GYhbnbcTPby2-EzBokl1R7aJMJYInzmvSR1XPGUTHmNzUXO7elxToS5CINt5vAXFCc0-4cJ0J4_-_Uh-Y2JRp429KwsTwtnou4VVpneMLb9YyUbAY6kQmaDn-izCLcaX5mQqphpaDHf-"/>
+</div>
+<div class="bg-green-50 p-6 rounded-xl border border-green-200" x-data="{ openAdvisory: '' }">
+<h4 class="text-xl font-semibold text-gray-800 mb-4 flex items-center"><span class="material-icons mr-2 text-green-600">article</span>Advisory for Wheat</h4>
+<p class="text-gray-600 mb-6">This is a humane interpretation of the data, helping you make the best decision.</p>
+<div class="space-y-4">
+<div class="rounded-lg bg-green-100 border-l-4 border-green-500 overflow-hidden">
+<div @click="openAdvisory = openAdvisory === 'irrigation' ? '' : 'irrigation'" class="flex items-start p-4 cursor-pointer">
+<span class="material-icons text-green-500 text-3xl mr-4 mt-1">opacity</span>
+<div class="flex-grow">
+<h5 class="font-semibold text-gray-800">Irrigation</h5>
+<p class="text-gray-700">The soil is happy. Hold off on watering for now.</p>
+</div>
+<span :class="{'rotate-180': openAdvisory === 'irrigation'}" class="material-icons transition-transform">expand_more</span>
+</div>
+<div class="px-4 pb-4" x-cloak="" x-collapse="" x-show="openAdvisory === 'irrigation'">
+<p class="text-sm text-gray-600 mb-3"><strong>Solution:</strong> No action needed. Monitor soil moisture in 2-3 days or if leaves show signs of wilting.</p>
+<a class="inline-flex items-center text-sm font-medium text-teal-600 hover:text-teal-800" href="https://www.youtube.com/watch?v=example1" target="_blank">
+<span class="material-icons mr-1">smart_display</span> Watch Video Guide
+                                            </a>
+</div>
+</div>
+<div class="rounded-lg bg-yellow-100 border-l-4 warning-pulse overflow-hidden">
+<div @click="openAdvisory = openAdvisory === 'pest' ? '' : 'pest'" class="flex items-start p-4 cursor-pointer">
+<span class="material-icons text-yellow-600 text-3xl mr-4 mt-1">bug_report</span>
+<div class="flex-grow">
+<h5 class="font-semibold text-gray-800">Pest Control</h5>
+<p class="text-gray-700">Warm weather may attract aphids. Check your plants.</p>
+</div>
+<span :class="{'rotate-180': openAdvisory === 'pest'}" class="material-icons transition-transform">expand_more</span>
+</div>
+<div class="px-4 pb-4" x-cloak="" x-collapse="" x-show="openAdvisory === 'pest'">
+<p class="text-sm text-gray-600 mb-3"><strong>Solution:</strong> Look for clusters of small insects on new growth. Apply neem oil spray as a natural deterrent if pests are present.</p>
+<a class="inline-flex items-center text-sm font-medium text-teal-600 hover:text-teal-800" href="https://www.youtube.com/watch?v=example2" target="_blank">
+<span class="material-icons mr-1">smart_display</span> Watch Video Guide
+                                            </a>
+</div>
+</div>
+<div class="rounded-lg bg-red-100 border-l-4 border-red-500 overflow-hidden">
+<div @click="openAdvisory = openAdvisory === 'disease' ? '' : 'disease'" class="flex items-start p-4 cursor-pointer">
+<span class="material-icons text-red-500 text-3xl mr-4 mt-1">local_florist</span>
+<div class="flex-grow">
+<h5 class="font-semibold text-gray-800">Disease Alert</h5>
+<p class="text-gray-700">High humidity raises risk of powdery mildew.</p>
+</div>
+<span :class="{'rotate-180': openAdvisory === 'disease'}" class="material-icons transition-transform">expand_more</span>
+</div>
+<div class="px-4 pb-4" x-cloak="" x-collapse="" x-show="openAdvisory === 'disease'">
+<p class="text-sm text-gray-600 mb-3"><strong>Solution:</strong> Ensure good air circulation by pruning if necessary. Prepare a baking soda or milk spray solution for treatment if white spots appear.</p>
+<a class="inline-flex items-center text-sm font-medium text-teal-600 hover:text-teal-800" href="https://www.youtube.com/watch?v=example3" target="_blank">
+<span class="material-icons mr-1">smart_display</span> Watch Video Guide
+                                            </a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="mt-8">
+<div class="bg-white p-8 rounded-2xl shadow-lg" x-data="{ feedbackExpanded: true, submitted: false }" x-init="$watch('allExpanded', value =&gt; feedbackExpanded = value)">
+<div @click="feedbackExpanded = !feedbackExpanded" class="flex justify-between items-center cursor-pointer">
+<h3 class="text-2xl font-semibold text-gray-800 flex items-center">
+<span class="material-icons text-teal-500 mr-3">feedback</span> Share Your Feedback
+                            </h3>
+<button :class="{'rotate-180': !feedbackExpanded}" class="text-gray-500 hover:text-gray-700 transition-transform">
+<span class="material-icons">expand_less</span>
+</button>
+</div>
+<div class="mt-6" x-collapse="" x-show="feedbackExpanded">
+<div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg mb-6" role="alert" x-cloak="" x-show="submitted">
+<p class="font-bold">Thank You!</p>
+<p>Your feedback has been submitted successfully. We appreciate your input.</p>
+</div>
+<form @submit.prevent="submitted = true; setTimeout(() =&gt; submitted = false, 5000)" x-show="!submitted">
+<p class="text-gray-600 mb-4">Was this advisory helpful? Help us improve by rating your experience.</p>
+<div class="flex items-center space-x-4 mb-6" x-data="{ rating: 0 }">
+<template x-for="star in 5">
+<button :class="star &lt;= rating ? 'text-yellow-400' : 'text-gray-300'" @click="rating = star" class="text-4xl hover:text-yellow-400 transition-colors focus:outline-none" type="button">
+<span class="material-icons">star</span>
+</button>
+</template>
+</div>
+<div class="mb-6">
+<label class="block text-gray-700 text-sm font-medium mb-2" for="feedback-comments">Additional Comments (Optional)</label>
+<textarea class="w-full p-3 bg-gray-100 border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-shadow" id="feedback-comments" placeholder="Tell us more about your experience..." rows="4"></textarea>
+</div>
+<button class="w-full bg-teal-500 text-white py-3 px-6 rounded-lg font-semibold flex items-center justify-center hover:bg-teal-600 transition-all transform hover:scale-105 shadow-md" type="submit">
+<span class="material-icons mr-2">send</span> Submit Feedback
+                                </button>
+</form>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+</body></html>
