@@ -1,0 +1,94 @@
+{
+  "Kathmandu_Valley": {
+    "Kathmandu_District": [
+      {
+        "name": "Kathmandu Metropolitan City",
+        "type": "Metropolitan City"
+      },
+      {
+        "name": "Kirtipur Municipality",
+        "type": "Municipality"
+      },
+      {
+        "name": "Dakshinkali Municipality",
+        "type": "Municipality"
+      },
+      {
+        "name": "Kageshwori-Manohara Municipality",
+        "type": "Municipality"
+      },
+      {
+        "name": "Gokarneshwor Municipality",
+        "type": "Municipality"
+      },
+      {
+        "name": "Chandragiri Municipality",
+        "type": "Municipality"
+      },
+      {
+        "name": "Tokha Municipality",
+        "type": "Municipality"
+      },
+      {
+        "name": "Tarakeshwor Municipality",
+        "type": "Municipality"
+      },
+      {
+        "name": "Nagarjun Municipality",
+        "type": "Municipality"
+      },
+      {
+        "name": "Budhanilkantha Municipality",
+        "type": "Municipality"
+      },
+      {
+        "name": "Shankharapur Municipality",
+        "type": "Municipality"
+      }
+    ],
+    "Lalitpur_District": [
+      {
+        "name": "Lalitpur Metropolitan City",
+        "type": "Metropolitan City"
+      },
+      {
+        "name": "Mahalaxmi Municipality",
+        "type": "Municipality"
+      },
+      {
+        "name": "Godawari Municipality",
+        "type": "Municipality"
+      },
+      {
+        "name": "Bagmati Rural Municipality",
+        "type": "Rural Municipality"
+      },
+      {
+        "name": "Mahankal Rural Municipality",
+        "type": "Rural Municipality"
+      },
+      {
+        "name": "Konjyosom Rural Municipality",
+        "type": "Rural Municipality"
+      }
+    ],
+    "Bhaktapur_District": [
+      {
+        "name": "Bhaktapur Municipality",
+        "type": "Municipality"
+      },
+      {
+        "name": "Changunarayan Municipality",
+        "type": "Municipality"
+      },
+      {
+        "name": "Madhyapur Thimi Municipality",
+        "type": "Municipality"
+      },
+      {
+        "name": "Suryabinayak Municipality",
+        "type": "Municipality"
+      }
+    ]
+  }
+}
